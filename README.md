@@ -13,7 +13,7 @@ Our team successfully created a VPC, public subnet, security group, S3 bucket, a
 
 ## Scripts and Outputs
 
-### 1. import-key.sh
+### 1. import-key
 Imports an SSH public key into AWS so we can connect to EC2 instances.
 
 ```bash
@@ -55,7 +55,7 @@ aws ec2 import-key-pair --key-name "bcitkey" --public-key-material fileb://${pub
 
 ---
 
-### 2. create-bucket.sh
+### 2. create-bucket
 
 Creates an S3 bucket in **us-west-2** if it doesn’t already exist.
 
@@ -96,7 +96,7 @@ fi
 
 ---
 
-### 3. create-vpc.sh
+### 3. create-vpc
 
 Creates a VPC with a public subnet, internet gateway, and route table. Writes IDs to `infrastructure_data`.
 
@@ -146,7 +146,7 @@ subnet_id=subnet-0097cb0f4e5724619
 
 ---
 
-### 4. create-ec2.sh
+### 4. create-ec2
 
 Launches an EC2 instance in the public subnet using the Debian AMI, security group, and imported key. Writes public IP to `instance_data`.
 
