@@ -59,20 +59,6 @@ Provision a VPC, subnet, security group, and EC2 instance using the AWS CLI.
   ssh -i ~/.ssh/bcitkey admin@<public-ip>
   ```
 
-**Relevant AWS CLI documentation:**  
-- Create VPC:  
-  `https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/create-vpc.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fcreate-vpc.html")  
-- Create subnet:  
-  `https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/create-subnet.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fcreate-subnet.html")  
-- Create security group:  
-  `https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/create-security-group.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fcreate-security-group.html")  
-- Authorize security group ingress:  
-  `https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/authorize-security-group-ingress.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fauthorize-security-group-ingress.html")  
-- Run instances:  
-  `https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/run-instances.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Frun-instances.html")  
-- Describe instance metadata:  
-  `https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/describe-instances.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fdescribe-instances.html")
-
 ---
 
 # **Verification**
