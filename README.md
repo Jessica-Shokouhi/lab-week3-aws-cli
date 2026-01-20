@@ -3,9 +3,9 @@
 # **lab-week3-aws-cli — AWS CLI Infrastructure Provisioning**
 
 ## **Group Members**
--Jessica 
--Cole
--Kyle
+Jessica 
+Cole
+Kyle
 
 ## **AWS Region**
 us-west-2
