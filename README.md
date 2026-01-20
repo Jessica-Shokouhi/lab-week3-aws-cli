@@ -1,147 +1,220 @@
 ---
 
-# **lab-week3-aws-cli — AWS CLI Infrastructure Provisioning**
+# lab-wk3
 
-## **Group Members**
-Jessica 
-Cole
-Kyle
+Our team successfully created a VPC, public subnet, security group, S3 bucket, and an EC2 instance. We also imported an SSH key and connected to the EC2 instance.  
 
-## **AWS Region**
-us-west-2
-
----
-
-# **Part 1 — SSH Key Import**
-
-### **Key Used**
-`bcitkey`
-
-### **Public Key Import Command**
-```
-aws ec2 import-key-pair \
-  --key-name "bcitkey" \
-  --public-key-material fileb://~/.ssh/bcitkey.pub \
-  --region us-west-2
-```
-
-### **Documentation Used**
-Import Key Pair  
-`https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/import-key-pair.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fimport-key-pair.html")
-
-### **Notes**
-- The key was generated locally using `ssh-keygen`
-- Only the **public key** is uploaded to AWS  
-- The key is required for Script 3 to SSH into the EC2 instance
+## Team Members
+- Jessica
+- Cole
+- Kyle
 
 ---
 
-# **Part 2 — S3 Bucket Creation**
+## Scripts and Outputs
 
-### **Bucket Creation Command**
-(Executed inside the script `create-bucket`)
-```
-aws s3api create-bucket \
-  --bucket <your-unique-bucket-name> \
-  --region us-west-2 \
-  --create-bucket-configuration LocationConstraint=us-west-2
+### 1. import-key.sh
+Imports an SSH public key into AWS so we can connect to EC2 instances.
+
+```bash
+#!/usr/bin/env bash
+set -eu
+
+err() {
+  error_messsage="$@"
+  echo -e "\033[1;31m ERROR:\033[0m ${error_messsage}" >&2
+  exit 1
+}
+
+public_key_file=""
+
+if [[ $# -ne 1 ]]; then
+  err "script requires the path to the public key file you would like to import"
+fi
+
+if [[ ! -f $1 ]]; then
+  err "path to public key for import is incorrect, file does not exist"
+else
+  public_key_file="$1"
+fi
+
+aws ec2 import-key-pair --key-name "bcitkey" --public-key-material fileb://${public_key_file} > key_data
+````
+
+**Output (`key_data`):**
+
+```json
+{
+  "KeyFingerprint": "yztEio3gkbQi4DvFSLsJ5uIhjnnMf1RRHR4gZKsNs+8=",
+  "KeyName": "bcitkey",
+  "KeyPairId": "key-09bb99f3ab8f006a7"
+}
 ```
 
-### **Documentation Used**
-Create Bucket  
-`https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3api/create-bucket.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fs3api%2Fcreate-bucket.html")
-
-### **Notes**
-- Bucket names must be globally unique  
-- The `LocationConstraint` is required for any region other than `us-east-1`  
-- Bucket deletion command:
-```
-aws s3api delete-bucket --bucket <your-bucket-name> --region us-west-2
-```
+**Documentation:** [import-key-pair](https://docs.aws.amazon.com/cli/latest/reference/ec2/import-key-pair.html)
 
 ---
 
-# **Part 3 — VPC + EC2 Provisioning**
+### 2. create-bucket.sh
 
-Scripts used:
-- `create-vpc`
-- `create-ec2`
+Creates an S3 bucket in **us-west-2** if it doesn’t already exist.
 
-### **What Script 3 Does**
-- Creates a VPC  
-- Creates a subnet  
-- Creates a security group  
-- Adds SSH (22) and HTTP (80) ingress rules  
-- Launches a Debian EC2 instance  
-- Uses the key pair imported in Part 1  
-- Writes the public IP to a file named `instance_data`
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-### **AMI Used**
-Debian AMI provided in the starter files via the `debian_ami` variable.
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <bucket_name>"
+    exit 1
+fi
 
-### **Instance Type**
-`t3.micro`  
-(Free-tier eligible in us-west-2)
+bucket_name=$1
 
-### **SSH Command Used to Test**
+if aws s3api head-bucket --bucket "$bucket_name" 2>/dev/null; then
+    echo "Bucket $bucket_name already exists."
+else
+  aws s3api create-bucket \
+    --bucket "$bucket_name" \
+    --region us-west-2 \
+    --create-bucket-configuration LocationConstraint=us-west-2 \
+    > bucket_data
+
+  echo "Bucket $bucket_name created."
+fi
 ```
-ssh -i ~/.ssh/bcitkey admin@<public-ip>
+
+**Output (`bucket_data`):**
+
+```json
+{ 
+  "Location": "http://jessica-bucket-3420.s3.amazonaws.com/", 
+  "BucketArn": "arn:aws:s3:::jessica-bucket-3420"
+}
 ```
 
-### **Documentation Used**
-Create VPC  
-`https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/create-vpc.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fcreate-vpc.html")
-
-Create Subnet  
-`https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/create-subnet.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fcreate-subnet.html")
-
-Create Security Group  
-`https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/create-security-group.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fcreate-security-group.html")
-
-Authorize Ingress  
-`https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/authorize-security-group-ingress.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fauthorize-security-group-ingress.html")
-
-Run Instances  
-`https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/run-instances.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Frun-instances.html")
-
-Describe Instances  
-`https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/describe-instances.html` [(awscli.amazonaws.com in Bing)](https://www.bing.com/search?q="https%3A%2F%2Fawscli.amazonaws.com%2Fv2%2Fdocumentation%2Fapi%2Flatest%2Freference%2Fec2%2Fdescribe-instances.html")
+**Documentation:** [create-bucket](https://docs.aws.amazon.com/cli/latest/reference/s3api/create-bucket.html)
 
 ---
 
-# **Testing the Infrastructure**
+### 3. create-vpc.sh
 
-After running all scripts:
+Creates a VPC with a public subnet, internet gateway, and route table. Writes IDs to `infrastructure_data`.
 
-### **1. Run provisioning scripts**
-```
-./import-key
-./create-bucket
-./create-vpc
-./create-ec2
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+region="us-west-2"
+vpc_cidr="10.0.0.0/16"
+subnet_cidr="10.0.1.0/24"
+
+vpc_id=$(aws ec2 create-vpc --cidr-block $vpc_cidr --query 'Vpc.VpcId' --output text --region $region)
+aws ec2 create-tags --resources $vpc_id --tags Key=Name,Value=MyVPC --region $region
+aws ec2 modify-vpc-attribute --vpc-id $vpc_id --enable-dns-hostnames Value=true
+
+subnet_id=$(aws ec2 create-subnet --vpc-id $vpc_id \
+  --cidr-block $subnet_cidr \
+  --availability-zone ${region}a \
+  --query 'Subnet.SubnetId' \
+  --output text --region $region)
+aws ec2 create-tags --resources $subnet_id --tags Key=Name,Value=PublicSubnet --region $region
+
+igw_id=$(aws ec2 create-internet-gateway --query 'InternetGateway.InternetGatewayId' \
+  --output text --region $region)
+aws ec2 attach-internet-gateway --vpc-id $vpc_id --internet-gateway-id $igw_id --region $region
+
+route_table_id=$(aws ec2 create-route-table --vpc-id $vpc_id \
+  --query 'RouteTable.RouteTableId' \
+  --region $region \
+  --output text)
+aws ec2 associate-route-table --subnet-id $subnet_id --route-table-id $route_table_id --region $region
+aws ec2 create-route --route-table-id $route_table_id \
+  --destination-cidr-block 0.0.0.0/0 --gateway-id $igw_id --region $region
+
+echo "vpc_id=${vpc_id}" > infrastructure_data
+echo "subnet_id=${subnet_id}" >> infrastructure_data
 ```
 
-### **2. Verify EC2 public IP**
+**Output (`infrastructure_data`):**
+
 ```
-cat instance_data
+vpc_id=vpc-005889f22c09c3e72
+subnet_id=subnet-0097cb0f4e5724619
 ```
 
-### **3. SSH into the instance**
-```
-ssh -i ~/.ssh/bcitkey admin@<public-ip>
-```
-
-### **4. Confirm instance is reachable**
-Inside EC2:
-```
-uname -a
-```
+**Documentation:** [create-vpc](https://docs.aws.amazon.com/cli/latest/reference/ec2/create-vpc.html), [create-subnet](https://docs.aws.amazon.com/cli/latest/reference/ec2/create-subnet.html), [create-internet-gateway](https://docs.aws.amazon.com/cli/latest/reference/ec2/create-internet-gateway.html)
 
 ---
 
-# **Repository Link**
-Public GitHub repo URL:  
-<your‑repo‑link‑here>
+### 4. create-ec2.sh
+
+Launches an EC2 instance in the public subnet using the Debian AMI, security group, and imported key. Writes public IP to `instance_data`.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+region="us-west-2"
+key_name="bcitkey"
+
+source ./infrastructure_data
+
+debian_ami=$(aws ec2 describe-images \
+  --owners "136693071363" \
+  --filters 'Name=name,Values=debian-*-amd64-*' 'Name=architecture,Values=x86_64' 'Name=virtualization-type,Values=hvm' \
+  --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' \
+  --output text)
+
+security_group_id=$(aws ec2 create-security-group --group-name MySecurityGroup \
+ --description "Allow SSH and HTTP" --vpc-id $vpc_id --query 'GroupId' \
+ --region $region --output text)
+
+aws ec2 authorize-security-group-ingress --group-id $security_group_id \
+ --protocol tcp --port 22 --cidr 0.0.0.0/0 --region $region
+
+aws ec2 authorize-security-group-ingress --group-id $security_group_id \
+ --protocol tcp --port 80 --cidr 0.0.0.0/0 --region $region
+
+instance_id=$(aws ec2 run-instances \
+  --image-id "$debian_ami" \
+  --instance-type t3.micro \
+  --security-group-ids "$security_group_id" \
+  --subnet-id "$subnet_id" \
+  --associate-public-ip-address \
+  --key-name "$key_name" \
+  --region "$region" \
+  --query 'Instances[0].InstanceId' \
+  --output text)
+
+aws ec2 wait instance-running --instance-ids "$instance_id"
+
+public_ip=$(aws ec2 describe-instances \
+  --instance-ids "$instance_id" \
+  --region "$region" \
+  --query 'Reservations[0].Instances[0].PublicIpAddress' \
+  --output text)
+
+echo "$public_ip" > instance_data
+```
+
+**Output (`instance_data`):**
+
+```
+54.218.43.226
+```
+
+**SSH Test:**
+
+```bash
+ssh -i <your-private-key> admin@54.218.43.226
+```
+
+* Successfully connected and verified Debian 11 (bullseye) running.
+
+**Documentation:** [run-instances](https://docs.aws.amazon.com/cli/latest/reference/ec2/run-instances.html), [describe-instances](https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html)
+
+<img width="2194" height="1052" alt="image" src="https://github.com/user-attachments/assets/228e3471-fb21-4084-a043-8cc76428d122" />
+
 
 ---
 
