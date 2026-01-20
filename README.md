@@ -218,4 +218,10 @@ ssh -i <your-private-key> admin@54.218.43.226
 
 ---
 
+**Public Repo**
+https://github.com/Jessica-Shokouhi/lab-week3-aws-cli
+
+
+
+
 
